@@ -1,0 +1,31 @@
+<div class="pokemon-card" [style.background-color]="cardColor()">
+  <img class="pokemon-image" [src]="pokemon().sprite" [alt]="pokemon().name" />
+  <h2>#{{ pokemon().id }} {{ pokemon().name | uppercase }}</h2>
+  <p class="types">
+    @for (type of pokemon().types; track type) {
+      <span class="type-badge">{{ type }}</span>
+    }
+  </p>
+
+  <h3>Base Stats</h3>
+  @for (stat of pokemon().stats; track stat.name) {
+    <div class="stat-row">
+      <span>{{ stat.name }}</span>
+      <span>{{ stat.value }}</span>
+    </div>
+  }
+
+  @if (pokemon().evolutions.length > 1) {
+    <div class="evolutions">
+      <h3>Evolution Chain</h3>
+      <div class="evolution-chain">
+        @for (evo of pokemon().evolutions; track evo; let last = $last) {
+          <span>
+            {{ evo.charAt(0).toUpperCase() + evo.slice(1)
+            }}{{ !last ? " → " : "" }}
+          </span>
+        }
+      </div>
+    </div>
+  }
+</div>

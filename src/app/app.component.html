@@ -1,0 +1,16 @@
+<main class="app">
+  <h1>Pokemon Random Generator: Angular</h1>
+  <p class="subtitle">React → Svelte → Angular. Same app, third framework.</p>
+
+  <button (click)="fetchRandomPokemon()" [disabled]="loading()">
+    {{ loading() ? "Loading..." : "Click me!" }}
+  </button>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (pokemon()) {
+    <app-pokemon-card [pokemon]="pokemon()!"></app-pokemon-card>
+  }
+</main>
