@@ -2,7 +2,9 @@
 
 A random Pokemon generator built with Angular, TypeScript, and the PokeAPI. Click the button, discover a Pokemon — complete with its type, base stats, and full evolution chain. Card colors adapt to match the Pokemon's primary type.
 
-Originally built as part of the Crexendo Developer Advocate take-home assessment in React — ported to Svelte, and then to Angular, to demonstrate framework range.
+Runs in the browser **or as a standalone desktop app with Electron.**
+
+Originally built as part of the Crexendo Developer Advocate take-home assessment in React — ported to Svelte, then to Angular to demonstrate framework range, and now wrapped in Electron as a desktop app.
 
 ## 🚀 Features
 
@@ -12,12 +14,14 @@ Originally built as part of the Crexendo Developer Advocate take-home assessment
 - **Error Handling** — typed handling of 404s, rate limits, and network failures
 - **Loading State** — button disables during fetch to prevent duplicate requests
 - **Fully Typed** — Pokemon data shape enforced end-to-end with TypeScript interfaces
+- **Desktop App** — runs in its own window with Electron, outside the browser
 
 ## 🛠️ Tech Stack
 
 - Angular (standalone components, signals)
 - TypeScript
 - RxJS
+- Electron (desktop app)
 - PokeAPI (no auth or API key required)
 - Vanilla CSS
 
@@ -25,6 +29,8 @@ Originally built as part of the Crexendo Developer Advocate take-home assessment
 
 ```
 pokerandom-angular/
+├── electron/
+│   └── main.js                              # Electron main process — opens the window, loads the built app
 ├── public/
 │   ├── card-back.png                        # Pokemon card back background image
 │   └── favicon.ico                          # Favicon
@@ -74,13 +80,35 @@ pokerandom-angular/
    npm install
 ```
 
-3. Start the development server
+### Run in the browser
 
 ```bash
    npm start
 ```
 
-4. Open your browser to `http://localhost:4200`
+Then open your browser to `http://localhost:4200`
+
+### Run as a desktop app (Electron)
+
+```bash
+   npm run electron
+```
+
+This builds the Angular app and opens it in its own desktop window.
+
+## 🖥️ The Electron Desktop App
+
+Electron turns a web app into a desktop app by bundling Chromium (to draw the screen) with Node.js (to access the computer). The Angular code didn't need to be rewritten — Electron wraps the existing app.
+
+- **Main process** (`electron/main.js`) — runs in Node.js, creates the window with `BrowserWindow`, and loads the built Angular app from `dist/` with `loadFile`
+- **Renderer process** — the window itself, where the Angular app runs exactly as it does in the browser
+- **Build step** — `ng build --base-href ./` produces the app in `dist/pokerandom-angular/browser/`. The relative base href lets the built app find its files when loaded from disk instead of a web server
+
+### Debugging note: the missing background
+
+After wrapping the app in Electron, the card-back background disappeared. Opening DevTools in the Electron window (`Cmd + Option + I`) showed `Failed to load resource: net::ERR_FILE_NOT_FOUND` for `card-back.png`.
+
+The cause: the CSS used an absolute path, `url('/card-back.png')`. In a browser, `/` means the root of the website — but when Electron loads files from disk, `/` means the root of the hard drive. Changing it to a path relative to the stylesheet, `url('../public/card-back.png')`, lets Angular find the image at build time, copy it into `dist`, and rewrite the path so it works both in the browser and in Electron.
 
 ## 🌐 API
 
@@ -148,7 +176,7 @@ This project began as a React/JavaScript app, was rebuilt in Svelte + TypeScript
 - **Styles** — each component's CSS is scoped to its own template; global styles live in `styles.css`
 - **Type safety** — typed interfaces for every API response, plus `HttpErrorResponse` for status-code error handling
 
-Same app, same data, same look — three frameworks. The other versions:
+Same app, same data, same look — three frameworks, and now a desktop app. The other versions:
 
 - React: [github.com/sarahhopp717/pokeRandom](https://github.com/sarahhopp717/pokeRandom)
 - Svelte: [github.com/sarahhopp717/pokerandom-svelte](https://github.com/sarahhopp717/pokerandom-svelte)
@@ -159,9 +187,11 @@ Same app, same data, same look — three frameworks. The other versions:
 - Pokemon IDs are generated between 1–1025 to avoid 404 errors from non-existent IDs
 - Sprite images are low-resolution pixel art by design — this is the official artwork served by the PokeAPI
 - Evolution chain displays only the primary evolution path — branching evolutions (like Eevee) show the first branch only
+- The desktop app still needs an internet connection to reach the PokeAPI
 
 ## 🔮 Future Improvements
 
+- **Move API calls into the Electron main process** — the Angular app would request Pokemon through a preload bridge over IPC (`invoke` / `handle`), and the main process would fetch from the PokeAPI and return the result
 - Card shuffle animation on button click to enhance the random selection feel
 - Ability to compare two random Pokemon side by side
 - Type effectiveness chart showing strengths and weaknesses
